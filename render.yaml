@@ -2,8 +2,7 @@ services:
   - type: web
     name: instagram-growth-bot
     runtime: image
+    image:
+      url: php:8.2-apache
     buildCommand: ""
     startCommand: "php -S 0.0.0.0:$PORT"
-    envVars:
-      - key: PHP_VERSION
-        value: "8.2"
