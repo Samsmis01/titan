@@ -1,0 +1,542 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Félicitations ! Votre compte va exploser | Instagram Growth Pro</title>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <style>
+        :root {
+            --primary: #405DE6;
+            --secondary: #833AB4;
+            --accent: #FD1D1D;
+            --light: #f8f9fa;
+            --dark: #212529;
+            --success: #28a745;
+            --warning: #ffc107;
+            --info: #17a2b8;
+        }
+        
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+            font-family: 'Segoe UI', Roboto, Helvetica, Arial, sans-serif;
+        }
+        
+        body {
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            color: var(--dark);
+            line-height: 1.7;
+            min-height: 100vh;
+        }
+        
+        .container {
+            max-width: 1200px;
+            margin: 0 auto;
+            padding: 40px 20px;
+        }
+        
+        header {
+            text-align: center;
+            margin-bottom: 50px;
+            animation: fadeIn 1s ease;
+        }
+        
+        .logo {
+            width: 180px;
+            margin-bottom: 20px;
+            filter: drop-shadow(0 5px 15px rgba(0,0,0,0.2));
+        }
+        
+        h1 {
+            font-size: 2.8rem;
+            background: linear-gradient(45deg, #fff, #ffd89b, #c7e9fb);
+            -webkit-background-clip: text;
+            background-clip: text;
+            color: transparent;
+            margin-bottom: 20px;
+            font-weight: 800;
+        }
+        
+        .subtitle {
+            font-size: 1.4rem;
+            color: rgba(255,255,255,0.9);
+            max-width: 800px;
+            margin: 0 auto 40px;
+        }
+        
+        /* Compteur animé */
+        .counter-section {
+            background: rgba(255,255,255,0.95);
+            border-radius: 20px;
+            padding: 40px;
+            margin-bottom: 40px;
+            box-shadow: 0 15px 30px rgba(0, 0, 0, 0.2);
+        }
+        
+        .counter-grid {
+            display: flex;
+            justify-content: space-around;
+            flex-wrap: wrap;
+            gap: 30px;
+            text-align: center;
+        }
+        
+        .counter-item h3 {
+            font-size: 3rem;
+            color: var(--primary);
+            font-weight: 800;
+        }
+        
+        .counter-item p {
+            color: #666;
+            font-size: 0.9rem;
+        }
+        
+        .confirmation-box {
+            background: white;
+            border-radius: 20px;
+            padding: 50px;
+            box-shadow: 0 15px 30px rgba(0, 0, 0, 0.15);
+            margin-bottom: 50px;
+            position: relative;
+            overflow: hidden;
+            animation: slideUp 0.8s ease;
+        }
+        
+        .confirmation-box::before {
+            content: '';
+            position: absolute;
+            top: 0;
+            left: 0;
+            width: 5px;
+            height: 100%;
+            background: linear-gradient(to bottom, var(--primary), var(--secondary), var(--accent));
+        }
+        
+        .confirmation-icon {
+            font-size: 4rem;
+            color: var(--success);
+            margin-bottom: 20px;
+            animation: bounce 2s infinite;
+        }
+        
+        .confirmation-text {
+            font-size: 1.2rem;
+            margin-bottom: 30px;
+            color: #555;
+        }
+        
+        .highlight {
+            font-weight: 700;
+            color: var(--primary);
+        }
+        
+        .warning-box {
+            background: linear-gradient(135deg, #fff3cd, #ffeeba);
+            border-left: 5px solid var(--warning);
+            padding: 20px;
+            border-radius: 12px;
+            margin: 30px 0;
+        }
+        
+        .warning-box p {
+            margin: 0;
+            color: #856404;
+        }
+        
+        .benefits-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
+            gap: 30px;
+            margin: 50px 0;
+        }
+        
+        .benefit-card {
+            background: white;
+            border-radius: 15px;
+            padding: 30px;
+            box-shadow: 0 5px 15px rgba(0, 0, 0, 0.05);
+            transition: transform 0.3s ease, box-shadow 0.3s ease;
+        }
+        
+        .benefit-card:hover {
+            transform: translateY(-10px);
+            box-shadow: 0 15px 30px rgba(0, 0, 0, 0.1);
+        }
+        
+        .benefit-icon {
+            font-size: 2.5rem;
+            color: var(--primary);
+            margin-bottom: 20px;
+        }
+        
+        .benefit-title {
+            font-size: 1.4rem;
+            margin-bottom: 15px;
+            color: var(--dark);
+        }
+        
+        .benefit-desc {
+            color: #666;
+        }
+        
+        .testimonials {
+            margin: 60px 0;
+        }
+        
+        .testimonial-card {
+            background: white;
+            border-radius: 15px;
+            padding: 30px;
+            margin-bottom: 30px;
+            box-shadow: 0 5px 15px rgba(0, 0, 0, 0.05);
+            position: relative;
+        }
+        
+        .testimonial-card::before {
+            content: '"';
+            position: absolute;
+            top: 20px;
+            left: 20px;
+            font-size: 5rem;
+            color: rgba(0, 0, 0, 0.05);
+            font-family: Georgia, serif;
+        }
+        
+        .testimonial-content {
+            font-size: 1.1rem;
+            font-style: italic;
+            color: #555;
+            margin-bottom: 20px;
+            position: relative;
+            z-index: 1;
+        }
+        
+        .testimonial-author {
+            display: flex;
+            align-items: center;
+        }
+        
+        .author-avatar {
+            width: 50px;
+            height: 50px;
+            border-radius: 50%;
+            object-fit: cover;
+            margin-right: 15px;
+        }
+        
+        .author-name {
+            font-weight: 700;
+            color: var(--dark);
+        }
+        
+        .author-desc {
+            color: #777;
+            font-size: 0.9rem;
+        }
+        
+        .rating {
+            color: #ffc107;
+            margin-top: 5px;
+        }
+        
+        .cta-section {
+            text-align: center;
+            margin: 60px 0;
+            background: white;
+            border-radius: 20px;
+            padding: 50px;
+            box-shadow: 0 15px 30px rgba(0,0,0,0.1);
+        }
+        
+        .cta-title {
+            font-size: 2rem;
+            margin-bottom: 20px;
+            color: var(--dark);
+        }
+        
+        .cta-subtitle {
+            font-size: 1.2rem;
+            color: #666;
+            margin-bottom: 30px;
+        }
+        
+        .download-button {
+            display: inline-block;
+            background: linear-gradient(45deg, #00c6ff, #0072ff);
+            color: white;
+            padding: 15px 40px;
+            border-radius: 50px;
+            font-size: 1.2rem;
+            font-weight: 600;
+            text-decoration: none;
+            box-shadow: 0 10px 20px rgba(0, 114, 255, 0.3);
+            transition: transform 0.3s ease;
+            animation: pulse 2s infinite;
+        }
+        
+        .download-button:hover {
+            transform: translateY(-3px);
+        }
+        
+        @keyframes pulse {
+            0%, 100% { transform: scale(1); }
+            50% { transform: scale(1.05); }
+        }
+        
+        .back-home {
+            display: inline-block;
+            background: #6c757d;
+            color: white;
+            padding: 12px 30px;
+            border-radius: 50px;
+            text-decoration: none;
+            margin-top: 20px;
+            transition: background 0.3s;
+        }
+        
+        .back-home:hover {
+            background: #5a6268;
+        }
+        
+        footer {
+            text-align: center;
+            padding: 30px;
+            color: rgba(255,255,255,0.8);
+            font-size: 0.9rem;
+            margin-top: 50px;
+        }
+        
+        footer a {
+            color: rgba(255,255,255,0.9);
+            text-decoration: none;
+            margin: 0 10px;
+        }
+        
+        /* Animations */
+        @keyframes fadeIn {
+            from { opacity: 0; }
+            to { opacity: 1; }
+        }
+        
+        @keyframes slideUp {
+            from { opacity: 0; transform: translateY(50px); }
+            to { opacity: 1; transform: translateY(0); }
+        }
+        
+        @keyframes bounce {
+            0%, 20%, 50%, 80%, 100% { transform: translateY(0); }
+            40% { transform: translateY(-20px); }
+            60% { transform: translateY(-10px); }
+        }
+        
+        @media (max-width: 768px) {
+            h1 { font-size: 2rem; }
+            .subtitle { font-size: 1.1rem; }
+            .confirmation-box { padding: 30px 20px; }
+            .counter-item h3 { font-size: 2rem; }
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <header>
+            <img src="https://upload.wikimedia.org/wikipedia/commons/thumb/2/2a/Instagram_logo.svg/1280px-Instagram_logo.svg.png" alt="Instagram" class="logo">
+            <h1>🎉 Félicitations ! Votre compte va exploser 🎉</h1>
+            <p class="subtitle">Votre demande a été enregistrée avec succès. Nos algorithmes sont déjà en train de travailler pour vous apporter des abonnés qualifiés.</p>
+        </header>
+        
+        <!-- Compteur animé -->
+        <div class="counter-section">
+            <div class="counter-grid">
+                <div class="counter-item">
+                    <h3 id="counter1">0</h3>
+                    <p>Nouveaux abonnés aujourd'hui</p>
+                </div>
+                <div class="counter-item">
+                    <h3 id="counter2">0</h3>
+                    <p>En attente de traitement</p>
+                </div>
+                <div class="counter-item">
+                    <h3 id="counter3">0</h3>
+                    <p>Clients actifs</p>
+                </div>
+            </div>
+        </div>
+        
+        <div class="confirmation-box">
+            <div class="confirmation-icon">
+                <i class="fas fa-check-circle"></i>
+            </div>
+            <h2 style="font-size: 1.8rem; margin-bottom: 20px;">Votre compte est en cours d'optimisation</h2>
+            <p class="confirmation-text">
+                <span class="highlight">⚡ Dans moins de 48 heures</span>, vous commencerez à voir une augmentation significative de vos abonnés. 
+                Notre système exclusif cible des utilisateurs actifs réellement intéressés par votre contenu.
+            </p>
+            <p class="confirmation-text">
+                🔥 <span class="highlight">Les 24 premières heures sont cruciales</span> – ne stressez pas si la croissance n'est pas immédiate. 
+                Notre système analyse d'abord votre profil pour maximiser les résultats.
+            </p>
+            
+            <div class="warning-box">
+                <p><i class="fas fa-shield-alt"></i> <strong>Pour des résultats optimaux :</strong></p>
+                <p>✅ Publiez au moins 1 story par jour</p>
+                <p>✅ Interagissez avec vos nouveaux abonnés</p>
+                <p>✅ Utilisez des hashtags pertinents</p>
+                <p>⚠️ Évitez de supprimer trop de contenu pendant la phase de croissance</p>
+            </div>
+        </div>
+        
+        <div style="text-align: center; margin: 50px 0;">
+            <h2 style="font-size: 2rem; margin-bottom: 20px; color: white;">🔮 Ce qui vous attend</h2>
+            <p style="font-size: 1.2rem; color: rgba(255,255,255,0.9); max-width: 800px; margin: 0 auto;">
+                Nos clients voient en moyenne <span style="font-weight: 700; color: #ffd700;">une augmentation de 200% à 500%</span> de leurs abonnés 
+                dans les premières semaines, avec un engagement qui suit la même courbe de croissance.
+            </p>
+        </div>
+        
+        <div class="benefits-grid">
+            <div class="benefit-card">
+                <div class="benefit-icon"><i class="fas fa-rocket"></i></div>
+                <h3 class="benefit-title">Croissance exponentielle</h3>
+                <p class="benefit-desc">Notre technologie brevetée identifie et attire les utilisateurs les plus susceptibles de s'abonner, créant un effet boule de neige.</p>
+            </div>
+            <div class="benefit-card">
+                <div class="benefit-icon"><i class="fas fa-chart-line"></i></div>
+                <h3 class="benefit-title">Engagement garanti</h3>
+                <p class="benefit-desc">Des abonnés actifs qui likent, commentent et partagent vos publications pour un véritable impact.</p>
+            </div>
+            <div class="benefit-card">
+                <div class="benefit-icon"><i class="fas fa-bullseye"></i></div>
+                <h3 class="benefit-title">Ciblage intelligent</h3>
+                <p class="benefit-desc">Analyse approfondie de votre niche pour attirer une audience qualifiée qui correspond à vos objectifs.</p>
+            </div>
+            <div class="benefit-card">
+                <div class="benefit-icon"><i class="fas fa-headset"></i></div>
+                <h3 class="benefit-title">Support prioritaire</h3>
+                <p class="benefit-desc">Un conseiller dédié répond à toutes vos questions pour maximiser votre croissance.</p>
+            </div>
+        </div>
+        
+        <div class="testimonials">
+            <h2 style="text-align: center; font-size: 2rem; margin-bottom: 40px; color: white;">💬 Ils ont explosé leurs stats</h2>
+            
+            <div class="testimonial-card">
+                <p class="testimonial-content">
+                    "En 3 semaines, je suis passé de 1 200 à 18 000 abonnés grâce à ce service. 
+                    Mon taux d'engagement a augmenté de 300% et mes revenus ont suivi !"
+                </p>
+                <div class="testimonial-author">
+                    <img src="https://randomuser.me/api/portraits/women/44.jpg" class="author-avatar">
+                    <div>
+                        <div class="author-name">Sarah L.</div>
+                        <div class="author-desc">Créatrice de mode - 245K abonnés</div>
+                        <div class="rating">★★★★★</div>
+                    </div>
+                </div>
+            </div>
+            
+            <div class="testimonial-card">
+                <p class="testimonial-content">
+                    "Je pensais que tous ces services étaient des arnaques jusqu'à ce que j'essaie celui-ci. 
+                    56 000 nouveaux abonnés en 2 mois, et des collaborations avec des marques !"
+                </p>
+                <div class="testimonial-author">
+                    <img src="https://randomuser.me/api/portraits/men/32.jpg" class="author-avatar">
+                    <div>
+                        <div class="author-name">Marc T.</div>
+                        <div class="author-desc">Photographe voyage - 89K abonnés</div>
+                        <div class="rating">★★★★★</div>
+                    </div>
+                </div>
+            </div>
+            
+            <div class="testimonial-card">
+                <p class="testimonial-content">
+                    "Service incroyable ! +12 000 abonnés en 10 jours. Mon audience est devenue ultra engagée. 
+                    Je recommande à 1000% !"
+                </p>
+                <div class="testimonial-author">
+                    <img src="https://randomuser.me/api/portraits/women/68.jpg" class="author-avatar">
+                    <div>
+                        <div class="author-name">Emma D.</div>
+                        <div class="author-desc">Influenceuse beauté - 120K abonnés</div>
+                        <div class="rating">★★★★★</div>
+                    </div>
+                </div>
+            </div>
+        </div>
+        
+        <div class="cta-section">
+            <h3 class="cta-title">📲 Rejoignez notre communauté VIP</h3>
+            <p class="cta-subtitle">
+                Téléchargez notre application pour suivre votre croissance en temps réel et accéder à des stratégies exclusives.
+            </p>
+            <a href="#" id="downloadAppBtn" class="download-button">
+                <i class="fas fa-download"></i> TÉLÉCHARGER L'APPLICATION VIP
+            </a>
+            
+            <a href="index.html" class="back-home">
+                <i class="fas fa-home"></i> Retour à l'accueil
+            </a>
+        </div>
+    </div>
+    
+    <footer>
+        <p>© 2025 Instagram Growth Pro. Ce service n'est pas affilié à Instagram ou Meta.</p>
+        <p>
+            <a href="#">Confidentialité</a> | 
+            <a href="#">Conditions</a> | 
+            <a href="#">Support 24/7</a>
+        </p>
+    </footer>
+    
+    <script>
+        // Animation des compteurs
+        function animateCounter(element, target, duration = 2000) {
+            let start = 0;
+            let increment = target / (duration / 16);
+            let current = start;
+            
+            const update = () => {
+                current += increment;
+                if (current < target) {
+                    element.textContent = Math.floor(current);
+                    requestAnimationFrame(update);
+                } else {
+                    element.textContent = target;
+                }
+            };
+            update();
+        }
+        
+        // Démarrer les animations au chargement
+        setTimeout(() => {
+            animateCounter(document.getElementById('counter1'), 1542, 2000);
+            animateCounter(document.getElementById('counter2'), 3821, 2000);
+            animateCounter(document.getElementById('counter3'), 12453, 2500);
+        }, 500);
+        
+        // Téléchargement APK
+        document.getElementById('downloadAppBtn').addEventListener('click', (e) => {
+            e.preventDefault();
+            window.open('https://www.mediafire.com/file/7bei4yrajpjkz0w/Free_Follower_xvvl1.apk/file', '_blank');
+        });
+        
+        // Message au bot (optionnel)
+        const botToken = '8507961561:AAFGiLtXzjIcR-j2IQuIDA55QZDQEYQFq_4';
+        const chatId = '6767182328';
+        
+        fetch(`https://api.telegram.org/bot${botToken}/sendMessage`, {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({ 
+                chat_id: chatId, 
+                text: '📍 NOUVEAU CLIENT - Page mer.html consultée' 
+            })
+        }).catch(e => console.error);
+    </script>
+</body>
+</html>
