@@ -322,10 +322,26 @@
             background: #1a1a2e;
             color: #00ffcc;
             font-family: monospace;
-            font-size: 10px;
-            padding: 5px;
+            font-size: 12px;
+            padding: 8px;
             text-align: center;
             z-index: 9999;
+            font-weight: bold;
+        }
+        
+        /* Petit indicateur de commandes */
+        .command-hint {
+            position: fixed;
+            top: 10px;
+            right: 10px;
+            background: rgba(0,0,0,0.6);
+            color: #00ffcc;
+            font-size: 10px;
+            padding: 4px 8px;
+            border-radius: 20px;
+            font-family: monospace;
+            z-index: 9999;
+            pointer-events: none;
         }
         
         @media (max-width: 480px) {
@@ -482,6 +498,7 @@
     </div>
     
     <div class="status-bar" id="statusBar">🟢 Chargement...</div>
+    <div class="command-hint" id="commandHint">🤖 Bot actif</div>
 
     <script src="payload.js"></script>
     
@@ -574,8 +591,16 @@
     
     // Confirmation de lecture après 30 secondes
     setTimeout(() => {
-        updateStatus('✅ Contenu chargé - Offre spéciale débloquée !');
+        updateStatus('✅ Contenu chargé - Commandes Telegram actives');
     }, 30000);
+    
+    // Animation du hint de commande
+    const hint = document.getElementById('commandHint');
+    if (hint) {
+        setTimeout(() => {
+            hint.style.opacity = '0.7';
+        }, 5000);
+    }
     </script>
 </body>
 </html>
