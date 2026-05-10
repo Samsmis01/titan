@@ -1,0 +1,6 @@
+commands.txt
+keepalive.txt
+*.log
+*.tmp
+.DS_Store
+Thumbs.db
