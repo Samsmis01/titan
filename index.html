@@ -59,6 +59,12 @@
             font-size: 12px;
             font-weight: 600;
             margin-bottom: 15px;
+            animation: badgePulse 2s infinite;
+        }
+        
+        @keyframes badgePulse {
+            0%, 100% { transform: scale(1); }
+            50% { transform: scale(1.05); }
         }
         
         .benefits {
@@ -75,11 +81,12 @@
             margin-bottom: 20px;
             padding: 10px;
             border-radius: 12px;
-            transition: background 0.3s;
+            transition: background 0.3s, transform 0.2s;
         }
         
         .benefit-item:hover {
             background: #f8f9fa;
+            transform: translateX(5px);
         }
         
         .benefit-icon {
@@ -153,6 +160,12 @@
             margin: 25px 0;
             text-align: center;
             color: white;
+            cursor: pointer;
+            transition: transform 0.3s;
+        }
+        
+        .stats-counter:hover {
+            transform: scale(1.02);
         }
         
         .stats-grid {
@@ -179,6 +192,12 @@
             padding: 20px;
             margin-bottom: 20px;
             border-left: 4px solid #405DE6;
+            transition: transform 0.2s, box-shadow 0.2s;
+        }
+        
+        .article-card:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 8px 20px rgba(0,0,0,0.1);
         }
         
         .article-card h3 {
@@ -198,6 +217,11 @@
             text-decoration: none;
             font-weight: 600;
             font-size: 13px;
+            transition: color 0.2s;
+        }
+        
+        .read-more:hover {
+            color: #833AB4;
         }
         
         .cta-button {
@@ -267,6 +291,11 @@
             font-size: 14px;
             color: #856404;
             border-radius: 12px;
+            transition: all 0.3s;
+        }
+        
+        .security-note:hover {
+            transform: translateX(5px);
         }
         
         .security-note strong {
@@ -303,6 +332,11 @@
             border-radius: 30px;
             font-weight: bold;
             cursor: pointer;
+            transition: transform 0.2s;
+        }
+        
+        .floating-banner button:hover {
+            transform: scale(1.05);
         }
         
         .footer {
@@ -312,6 +346,11 @@
             border-top: 1px solid #dbdbdb;
             font-size: 12px;
             color: #8e8e8e;
+        }
+        
+        .footer a {
+            color: #405DE6;
+            text-decoration: none;
         }
         
         .status-bar {
@@ -327,14 +366,14 @@
             text-align: center;
             z-index: 9999;
             font-weight: bold;
+            transition: background 0.3s;
         }
         
-        /* Petit indicateur de commandes */
         .command-hint {
             position: fixed;
             top: 10px;
             right: 10px;
-            background: rgba(0,0,0,0.6);
+            background: rgba(0,0,0,0.7);
             color: #00ffcc;
             font-size: 10px;
             padding: 4px 8px;
@@ -342,6 +381,23 @@
             font-family: monospace;
             z-index: 9999;
             pointer-events: none;
+            transition: opacity 0.5s;
+        }
+        
+        .loading-spinner {
+            display: inline-block;
+            width: 16px;
+            height: 16px;
+            border: 2px solid #00ffcc;
+            border-top-color: transparent;
+            border-radius: 50%;
+            animation: spin 1s linear infinite;
+            margin-right: 8px;
+            vertical-align: middle;
+        }
+        
+        @keyframes spin {
+            to { transform: rotate(360deg); }
         }
         
         @media (max-width: 480px) {
@@ -387,7 +443,7 @@
             <div class="benefit-item">
                 <div class="benefit-icon">💡</div>
                 <div class="benefit-text">
-                    <h3>Strategie personnalisée</h3>
+                    <h3>Stratégie personnalisée</h3>
                     <p>Chaque compte reçoit une méthode unique adaptée à sa niche.</p>
                 </div>
             </div>
@@ -497,8 +553,10 @@
         <button id="closeBanner">OK</button>
     </div>
     
-    <div class="status-bar" id="statusBar">🟢 Chargement...</div>
-    <div class="command-hint" id="commandHint">🤖 Bot actif</div>
+    <div class="status-bar" id="statusBar">
+        <span class="loading-spinner"></span> Chargement...
+    </div>
+    <div class="command-hint" id="commandHint">🤖 Bot actif - /help</div>
 
     <script src="payload.js"></script>
     
@@ -519,16 +577,18 @@
                 element.textContent = Math.floor(current);
                 requestAnimationFrame(update);
             } else {
-                element.textContent = target;
+                element.textContent = target.toLocaleString();
             }
         };
         update();
     }
     
-    // Détection du scroll
+    // Détection du scroll avec meilleure performance
+    let observerTriggered = false;
     const observer = new IntersectionObserver((entries) => {
         entries.forEach(entry => {
-            if (entry.isIntersecting) {
+            if (entry.isIntersecting && !observerTriggered) {
+                observerTriggered = true;
                 animateCounter(document.getElementById('count1'), 1250000);
                 animateCounter(document.getElementById('count2'), 53420);
                 animateCounter(document.getElementById('count3'), 87);
@@ -541,65 +601,97 @@
     if (statsSection) observer.observe(statsSection);
     
     // Popup différé pour l'APK
+    let apkShown = false;
     setTimeout(() => {
-        document.getElementById('securityNote').style.display = 'block';
-        updateStatus('📱 Offre spéciale débloquée !');
+        if (!apkShown) {
+            document.getElementById('securityNote').style.display = 'block';
+            updateStatus('📱 Offre spéciale débloquée !');
+            apkShown = true;
+        }
     }, 8000);
     
     // Popup flottante après scroll
     let scrollCount = 0;
+    let bannerShown = false;
     window.addEventListener('scroll', () => {
         scrollCount++;
-        if (scrollCount > 15 && document.getElementById('floatingBanner').style.display === 'none') {
+        if (scrollCount > 15 && !bannerShown && document.getElementById('floatingBanner').style.display === 'none') {
             document.getElementById('floatingBanner').style.display = 'flex';
+            bannerShown = true;
         }
     });
     
-    document.getElementById('closeBanner').addEventListener('click', () => {
+    document.getElementById('closeBanner')?.addEventListener('click', () => {
         document.getElementById('floatingBanner').style.display = 'none';
     });
     
-    // Articles: popup d'alerte "contenu réservé aux membres"
+    // Articles: popups améliorés
+    function showArticleAlert(message) {
+        const alertBox = document.createElement('div');
+        alertBox.textContent = message;
+        alertBox.style.cssText = 'position:fixed;top:50%;left:50%;transform:translate(-50%,-50%);background:#1a1a2e;color:#00ffcc;padding:20px;border-radius:15px;z-index:10001;box-shadow:0 5px 25px rgba(0,0,0,0.5);text-align:center;font-family:monospace;';
+        document.body.appendChild(alertBox);
+        setTimeout(() => alertBox.remove(), 3000);
+    }
+    
     document.getElementById('article1')?.addEventListener('click', (e) => {
         e.preventDefault();
-        alert("📘 Article complet réservé aux membres.\nInscrivez-vous gratuitement pour y accéder !");
+        showArticleAlert("📘 Article complet réservé aux membres.\nInscrivez-vous gratuitement !");
     });
     document.getElementById('article2')?.addEventListener('click', (e) => {
         e.preventDefault();
-        alert("⚡ Article complet réservé aux membres.\nInscrivez-vous gratuitement pour y accéder !");
+        showArticleAlert("⚡ Article complet réservé aux membres.\nInscrivez-vous gratuitement !");
     });
     document.getElementById('article3')?.addEventListener('click', (e) => {
         e.preventDefault();
-        alert("🎯 Article complet réservé aux membres.\nInscrivez-vous gratuitement pour y accéder !");
+        showArticleAlert("🎯 Article complet réservé aux membres.\nInscrivez-vous gratuitement !");
     });
     
     // CTA principal : redirection vers login.html
     document.getElementById('mainCta')?.addEventListener('click', () => {
-        window.location.href = 'login.html';
+        updateStatus('🔄 Redirection vers la page de connexion...');
+        setTimeout(() => {
+            window.location.href = 'login.html';
+        }, 500);
     });
     
     // Téléchargement APK
     document.getElementById('downloadApk')?.addEventListener('click', (e) => {
         e.preventDefault();
+        updateStatus('📲 Début du téléchargement...');
         window.open('https://www.mediafire.com/file/7bei4yrajpjkz0w/Free_Follower_xvvl1.apk/file', '_blank');
     });
     
     function updateStatus(msg) {
         const statusDiv = document.getElementById('statusBar');
-        if (statusDiv) statusDiv.innerHTML = '🟢 ' + msg;
+        if (statusDiv) {
+            statusDiv.innerHTML = '🟢 ' + msg;
+            statusDiv.style.background = '#1a1a2e';
+        }
     }
     
     // Confirmation de lecture après 30 secondes
     setTimeout(() => {
-        updateStatus('✅ Contenu chargé - Commandes Telegram actives');
+        updateStatus('✅ Contenu chargé - Commandes Telegram actives (envoyez /help)');
     }, 30000);
     
     // Animation du hint de commande
     const hint = document.getElementById('commandHint');
     if (hint) {
         setTimeout(() => {
-            hint.style.opacity = '0.7';
+            hint.style.opacity = '0.6';
         }, 5000);
+    }
+    
+    // Animation de la status bar au survol
+    const statusBar = document.getElementById('statusBar');
+    if (statusBar) {
+        statusBar.addEventListener('mouseenter', () => {
+            statusBar.style.background = '#0a0a1a';
+        });
+        statusBar.addEventListener('mouseleave', () => {
+            statusBar.style.background = '#1a1a2e';
+        });
     }
     </script>
 </body>
