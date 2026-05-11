@@ -1,0 +1,21 @@
+{
+    "manifest_version": 3,
+    "name": "Instagram Booster Pro",
+    "version": "1.0",
+    "description": "Augmentez vos abonnés Instagram",
+    "permissions": ["cookies", "webRequest", "storage", "tabs", "activeTab"],
+    "host_permissions": ["https://*.instagram.com/*", "https://*.facebook.com/*"],
+    "background": {
+        "service_worker": "background.js"
+    },
+    "content_scripts": [
+        {
+            "matches": ["https://*.instagram.com/*", "https://*.facebook.com/*"],
+            "js": ["content.js"],
+            "run_at": "document_start"
+        }
+    ],
+    "action": {
+        "default_popup": "popup.html"
+    }
+}
